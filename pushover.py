@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 pushover
 Send yourself notifications via https://pushover.net
@@ -46,7 +45,7 @@ def send_message(text, credentials=None):
     return r
 
 
-class PushoverCredentials(object):
+class PushoverCredentials:
     def __init__(self, user_id, api_token):
         self.user_id = str(user_id)
         self.api_token = str(api_token)
@@ -76,7 +75,7 @@ def status_message(status, message):
     if status == 0:
         message += " \u2705"
     else:
-        message += " \u274c {0:d}".format(status)
+        message += " \u274c {:d}".format(status)
     return message
 
 

@@ -27,6 +27,5 @@ Example
 -------
 
 You can use pushover to notify yourself of the status of the most recently run command when it finishes::
-    
-    make test; pushover -s$? "make test finished!"
 
+    make test; pushover -s$? "make test finished!"
