@@ -1,0 +1,11 @@
+# Development requirements for the pushover tool
+
+bump2version
+wheel
+flake8
+tox
+twine
+Click>=7.0
+pytest
+pytest-cov
+pip-tools
