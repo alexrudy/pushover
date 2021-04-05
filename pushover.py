@@ -14,7 +14,7 @@ Copyright 2017 Alexander Rudy. All rights reserved.
 __author__ = """Alexander Rudy"""
 __email__ = "pushover@alexrudy.net"
 
-__version__ = "1.0.0a1"
+__version__ = "1.0.0"
 
 import sys
 import os
