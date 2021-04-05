@@ -19,20 +19,39 @@ __version__ = "0.5.0"
 import sys
 import os
 
+from typing import Dict
+from typing import Optional
+
 
 try:
     import requests
     import click
-except ImportError:
+except ImportError:  # pragma: nocover
     print("{} requires 'click' and 'requests' to be installed".format(sys.argv[0]))
     sys.exit(1)
 
 
-class ConnectionError(Exception):
-    pass
+class ConnectionError(click.ClickException):
+    exit_code = 3
 
 
-def send_message(text, credentials=None):
+class ResponseError(click.ClickException):
+    exit_code = 4
+
+
+class PushoverCredentials:
+    def __init__(self, user_id: str, api_token: str) -> None:
+        self.user_id = str(user_id)
+        self.api_token = str(api_token)
+
+    def apply(self, payload: Dict[str, str]) -> Dict[str, str]:
+        """Apply these credentials to a payload"""
+        payload["user"] = self.user_id
+        payload["token"] = self.api_token
+        return payload
+
+
+def send_message(text: str, credentials: Optional[PushoverCredentials] = None) -> requests.Response:
     """Send a message"""
     payload = {"message": text}
     if credentials is None:
@@ -41,27 +60,15 @@ def send_message(text, credentials=None):
     try:
         r = requests.post("https://api.pushover.net/1/messages.json", data=payload, headers={"User-Agent": "Python"})
     except requests.exceptions.ConnectionError as e:
-        raise ConnectionError from e
+        raise ConnectionError("Unable to connect to api.pushover.net") from e
     return r
 
 
-class PushoverCredentials:
-    def __init__(self, user_id, api_token):
-        self.user_id = str(user_id)
-        self.api_token = str(api_token)
-
-    def apply(self, payload):
-        """Apply these credentials to a payload"""
-        payload["user"] = self.user_id
-        payload["token"] = self.api_token
-        return payload
+class CredentialDiscoveryError(click.ClickException):
+    exit_code = 2
 
 
-class CredentialDiscoveryError(Exception):
-    pass
-
-
-def discover_credentials():
+def discover_credentials() -> PushoverCredentials:
     """Discover credentials from the environment."""
     if all(f"PUSHOVER_{var}" in os.environ for var in ("USER_ID", "API_TOKEN")):
         return PushoverCredentials(os.environ["PUSHOVER_USER_ID"], os.environ["PUSHOVER_API_TOKEN"])
@@ -70,7 +77,7 @@ def discover_credentials():
     raise CredentialDiscoveryError("Can't discover credentials!")
 
 
-def status_message(status, message):
+def status_message(status: int, message: str) -> str:
     """Construct a status message (presumably from a process exit code.)"""
     if status == 0:
         message += " \u2705"
@@ -81,8 +88,13 @@ def status_message(status, message):
 
 @click.command()
 @click.option("-s", "--status", type=int, help="Return code to use to infer status.", metavar="CODE", default=None)
+@click.option(
+    "--supress-exit-code/--no-supress-exit-code",
+    default=False,
+    help="Return an exit code representatitve of click, not one from the --status argument.",
+)
 @click.argument("message", nargs=-1)
-def main(status, message):
+def main(status: int, supress_exit_code: bool, message: str) -> None:
     """Send a message via the pushover service.
 
     All positional arguments are concatenated with spaces and sent as the message text.
@@ -106,20 +118,14 @@ def main(status, message):
     message = " ".join(message)
     if status is not None:
         message = status_message(status, message)
-    try:
-        creds = discover_credentials()
-    except CredentialDiscoveryError as e:
-        click.echo(str(e), err=True)
-        raise click.Abort()
-    try:
-        r = send_message(message, creds)
-    except ConnectionError as e:
-        click.echo(str(e), err=True)
-        raise click.Abort()
+    creds = discover_credentials()
+    r = send_message(message, creds)
     if not r.status_code == 200:
-        click.echo(r.text, err=True)
-        raise click.Abort(r.status_code)
+        raise ResponseError(f"{r.status_code} {r.text}")
+
+    if not supress_exit_code:
+        sys.exit(status)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: nocover
     main()

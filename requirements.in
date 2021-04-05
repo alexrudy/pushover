@@ -9,3 +9,6 @@ Click>=7.0
 pytest
 pytest-cov
 pip-tools
+mypy
+responses
+black
