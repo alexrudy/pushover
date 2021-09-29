@@ -153,7 +153,7 @@ def test_status_code_success(service):
 def test_status_code_suppressed():
     runner = CliRunner()
 
-    result = runner.invoke(pushover.main, ["hello", "world", "-s", "5", "--supress-exit-code"])
+    result = runner.invoke(pushover.main, ["hello", "world", "-s", "5", "--suppress-exit-code"])
     assert result.exit_code == 0
     assert result.output == ""
 

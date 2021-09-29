@@ -89,12 +89,12 @@ def status_message(status: int, message: str) -> str:
 @click.command()
 @click.option("-s", "--status", type=int, help="Return code to use to infer status.", metavar="CODE", default=None)
 @click.option(
-    "--supress-exit-code/--no-supress-exit-code",
+    "--suppress-exit-code/--no-suppress-exit-code",
     default=False,
     help="Return an exit code representatitve of click, not one from the --status argument.",
 )
 @click.argument("message", nargs=-1)
-def main(status: int, supress_exit_code: bool, message: str) -> None:
+def main(status: int, suppress_exit_code: bool, message: str) -> None:
     """Send a message via the pushover service.
 
     All positional arguments are concatenated with spaces and sent as the message text.
@@ -123,7 +123,7 @@ def main(status: int, supress_exit_code: bool, message: str) -> None:
     if not r.status_code == 200:
         raise ResponseError(f"{r.status_code} {r.text}")
 
-    if not supress_exit_code:
+    if not suppress_exit_code:
         sys.exit(status)
 
 
