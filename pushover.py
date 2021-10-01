@@ -94,6 +94,7 @@ def status_message(status: int, message: str) -> str:
     help="Return an exit code representatitve of click, not one from the --status argument.",
 )
 @click.argument("message", nargs=-1)
+@click.version_option(version=__version__)
 def main(status: int, suppress_exit_code: bool, message: str) -> None:
     """Send a message via the pushover service.
 

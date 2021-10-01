@@ -178,3 +178,10 @@ def test_python_api_explicit_credentials(service):
     data = urllib.parse.parse_qs(service.calls[0].request.body)
     assert data["user"] == [credentials.user_id]
     assert data["token"] == [credentials.api_token]
+
+
+def test_version_option():
+    runner = CliRunner()
+
+    result = runner.invoke(pushover.main, ["--version"])
+    assert result.exit_code == 0
